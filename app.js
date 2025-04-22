@@ -192,6 +192,7 @@ function loadData() {
         updateUI();
     } catch (error) {
         console.error('Error loading data:', error);
+        displayErrorMessage('Failed to load data. Please refresh the page or check your browser settings.');
         // Reset to default values if there's an error
         players = [];
         currentGame = {
@@ -1442,6 +1443,177 @@ function clearCurrentGame() {
     alert(translations[currentLanguage].gameCleared);
 }
 
+// Mobile touch handling
+let touchStartY = 0;
+let pullThreshold = 150;
+let isPulling = false;
+
+document.addEventListener('touchstart', (e) => {
+    touchStartY = e.touches[0].clientY;
+});
+
+document.addEventListener('touchmove', (e) => {
+    const touchY = e.touches[0].clientY;
+    const pull = touchY - touchStartY;
+
+    // Only allow pull-to-refresh when at top of page
+    if (window.scrollY === 0 && pull > 0 && pull < pullThreshold) {
+        document.body.classList.add('pulling');
+        isPulling = true;
+        e.preventDefault();
+    }
+});
+
+document.addEventListener('touchend', () => {
+    if (isPulling) {
+        document.body.classList.remove('pulling');
+        if (window.scrollY === 0) {
+            // Refresh data
+            loadData();
+            updateUI();
+        }
+    }
+    isPulling = false;
+});
+
+// Prevent double-tap zoom on iOS
+document.addEventListener('touchend', (e) => {
+    const now = Date.now();
+    const DOUBLE_TAP_DELAY = 300;
+    
+    if (lastTap && (now - lastTap) < DOUBLE_TAP_DELAY) {
+        e.preventDefault();
+    }
+    lastTap = now;
+}, false);
+
+// Add fastclick to eliminate 300ms delay
+if ('addEventListener' in document) {
+    document.addEventListener('DOMContentLoaded', function() {
+        FastClick.attach(document.body);
+    }, false);
+}
+
+// Handle orientation changes
+window.addEventListener('orientationchange', () => {
+    updateUI();
+});
+
+// Improve input handling on iOS
+document.addEventListener('DOMContentLoaded', () => {
+    // Fix for iOS input zoom
+    const inputs = document.querySelectorAll('input[type="text"], input[type="number"]');
+    inputs.forEach(input => {
+        input.style.fontSize = '16px';
+    });
+
+    // Prevent zoom on focus
+    const meta = document.querySelector('meta[name="viewport"]');
+    if (meta) {
+        meta.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0';
+    }
+});
+
+// Add mobile swipe between tabs
+let touchStartX = 0;
+let touchEndX = 0;
+
+const handleSwipe = () => {
+    const swipeThreshold = 50;
+    const tabs = ['players', 'game', 'settlement', 'history'];
+    const swipeDistance = touchEndX - touchStartX;
+    
+    if (Math.abs(swipeDistance) > swipeThreshold) {
+        const currentTab = document.querySelector('.tab.active').id.replace('Tab', '');
+        const currentIndex = tabs.indexOf(currentTab);
+        
+        if (swipeDistance > 0 && currentIndex > 0) {
+            // Swipe right - previous tab
+            showTab(tabs[currentIndex - 1]);
+        } else if (swipeDistance < 0 && currentIndex < tabs.length - 1) {
+            // Swipe left - next tab
+            showTab(tabs[currentIndex + 1]);
+        }
+    }
+};
+
+document.addEventListener('touchstart', (e) => {
+    touchStartX = e.touches[0].clientX;
+});
+
+document.addEventListener('touchend', (e) => {
+    touchEndX = e.changedTouches[0].clientX;
+    handleSwipe();
+});
+
+// Theme toggle functionality
+const themeToggleButton = document.getElementById('themeToggle');
+
+themeToggleButton.addEventListener('click', () => {
+    // Check current theme
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    
+    // Toggle between light and dark themes
+    if (currentTheme === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'light');
+        themeToggleButton.textContent = 'Switch to Dark Theme';
+    } else {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        themeToggleButton.textContent = 'Switch to Light Theme';
+    }
+});
+
+// Optional: Save the user's theme preference in localStorage
+function saveThemePreference(theme) {
+    localStorage.setItem('theme', theme);
+}
+
+function loadThemePreference() {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        themeToggleButton.textContent = savedTheme === 'dark' ? 'Switch to Light Theme' : 'Switch to Dark Theme';
+    }
+}
+
+// Load theme preference on page load
+window.onload = function() {
+    loadData();
+    loadThemePreference(); // Load the saved theme preference
+    loadTextColorPreference(); // Load the saved text color preference
+    showTab('players');
+    updateLanguageUI();
+};
+
+// Theme image upload functionality
+const uploadThemeButton = document.getElementById('uploadThemeButton');
+const themeImageInput = document.getElementById('themeImageInput');
+
+uploadThemeButton.addEventListener('click', () => {
+    if (document.body.style.backgroundImage) {
+        document.body.style.backgroundImage = ''; // Remove background image
+        themeToggleButton.textContent = 'Upload Theme Image'; // Reset button text
+    } else {
+        themeImageInput.click(); // Trigger the file input click
+    }
+});
+
+themeImageInput.addEventListener('change', (event) => {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            // Set the background image of the body
+            document.body.style.backgroundImage = `url(${e.target.result})`;
+            document.body.style.backgroundSize = 'cover';
+            document.body.style.backgroundPosition = 'center';
+            document.body.style.backgroundRepeat = 'no-repeat';
+            themeToggleButton.textContent = 'Remove Theme Image'; // Update button text
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
 // Make sure all functions are properly exposed to the global scope
 window.initializeApp = initializeApp;
 window.loadData = loadData;
@@ -1468,4 +1640,31 @@ window.proceedWithSettlement = proceedWithSettlement;
 window.clearCurrentGame = clearCurrentGame;
 
 // Initialize the app when the script loads
-initializeApp(); 
+initializeApp();
+
+function saveTextColorPreference(color) {
+    localStorage.setItem('textColor', color);
+}
+
+function loadTextColorPreference() {
+    const savedColor = localStorage.getItem('textColor');
+    if (savedColor) {
+        document.documentElement.style.setProperty('--text-color', savedColor);
+        textColorPicker.value = savedColor; // Update the color picker
+    }
+}
+
+function displayErrorMessage(message) {
+    const errorContainer = document.createElement('div');
+    errorContainer.className = 'error';
+    errorContainer.textContent = message;
+
+    // Clear previous error messages
+    const existingError = document.querySelector('.error');
+    if (existingError) {
+        existingError.remove();
+    }
+
+    // Append the new error message to the container
+    document.querySelector('.container').insertBefore(errorContainer, document.querySelector('.tab-buttons'));
+} 

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#007bff">
     <meta name="description" content="Poker Game Calc2 - Track player buy-ins, rebuys, and calculate settlements">
     <link rel="manifest" href="/manifest.json">
@@ -10,18 +10,52 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <title>Poker Game Calc2</title>
     <style>
+        :root {
+            --background-color: #f0f2f5; /* Light theme background */
+            --text-color: #333; /* Light theme text color */
+            --button-background: #007bff; /* Light theme button background */
+            --button-hover-background: #0056b3; /* Light theme button hover */
+            --heading-color: #007bff; /* Light theme heading color */
+            --error-color: red; /* Error text color */
+            --input-text-color: #333;
+            --select-text-color: #333;
+        }
+
+        [data-theme="dark"] {
+            --background-color: #333; /* Dark theme background */
+            --text-color: #f0f2f5; /* Dark theme text color */
+            --button-background: #0056b3; /* Dark theme button background */
+            --button-hover-background: #007bff; /* Dark theme button hover */
+            --heading-color: #f0f2f5; /* Dark theme heading color */
+            --error-color: #ffcc00; /* Dark theme error color */
+            --input-text-color: #f0f2f5;
+            --select-text-color: #f0f2f5;
+        }
+
         body {
             font-family: Arial, sans-serif;
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
-            background-color: #f0f2f5;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            position: relative; /* Position relative for overlay */
+        }
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent overlay */
+            z-index: -1; /* Place behind content */
         }
         body[dir="rtl"] {
             font-family: "Arial Hebrew", Arial, sans-serif;
         }
         .container {
-            background-color: white;
+            background-color: var(--background-color);
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -29,12 +63,12 @@
         .section {
             margin-bottom: 20px;
             padding: 15px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--text-color);
             border-radius: 4px;
         }
         .btn {
             padding: 8px 16px;
-            background-color: #007bff;
+            background-color: var(--button-background);
             color: white;
             border: none;
             border-radius: 4px;
@@ -42,7 +76,7 @@
             margin: 5px;
         }
         .btn:hover {
-            background-color: #0056b3;
+            background-color: var(--button-hover-background);
         }
         .player-list {
             margin: 10px 0;
@@ -52,7 +86,7 @@
             justify-content: space-between;
             align-items: center;
             padding: 10px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--text-color);
             margin: 5px 0;
             border-radius: 4px;
         }
@@ -65,7 +99,7 @@
         }
         .input-group input {
             padding: 8px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--text-color);
             border-radius: 4px;
             width: 200px;
         }
@@ -79,19 +113,19 @@
             margin-bottom: 20px;
         }
         .settlement-item {
-            background-color: #f8f9fa;
+            background-color: var(--background-color);
             padding: 10px;
             margin: 5px 0;
             border-radius: 4px;
         }
         .error {
-            color: red;
+            color: var(--error-color);
             margin: 5px 0;
         }
         .game-history-item {
             padding: 10px;
             margin: 5px 0;
-            border: 1px solid #ddd;
+            border: 1px solid var(--text-color);
             border-radius: 4px;
             display: flex;
             justify-content: space-between;
@@ -113,11 +147,346 @@
             right: auto;
             left: 20px;
         }
+
+        /* Mobile-first responsive styles */
+        @media screen and (max-width: 768px) {
+            body {
+                padding: 10px;
+                font-size: 14px;
+            }
+
+            .container {
+                padding: 10px;
+                margin: 0;
+            }
+
+            /* Tab buttons adjustments */
+            .tab-buttons {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 5px;
+                margin-bottom: 15px;
+            }
+
+            .tab-buttons .btn {
+                flex: 1 1 calc(50% - 5px);
+                padding: 8px 5px;
+                font-size: 0.9em;
+                margin: 0;
+                white-space: nowrap;
+                text-align: center;
+            }
+
+            /* Input groups */
+            .input-group {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .input-group input,
+            .input-group select {
+                width: 100%;
+                max-width: none;
+                box-sizing: border-box;
+            }
+
+            /* Player items */
+            .player-item {
+                flex-direction: column;
+                gap: 10px;
+                padding: 12px;
+            }
+
+            .player-item > div {
+                width: 100%;
+            }
+
+            .player-item .btn {
+                width: 100%;
+                margin: 2px 0;
+            }
+
+            /* Game management layout */
+            #gameManagementContent > div {
+                grid-template-columns: 1fr !important;
+                gap: 15px !important;
+            }
+
+            /* Settlement display */
+            #settlementResults > div {
+                grid-template-columns: 1fr !important;
+            }
+
+            .settlement-item {
+                font-size: 0.9em;
+                padding: 10px;
+                word-break: break-word;
+            }
+
+            /* Game history items */
+            .game-history-item {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .game-actions {
+                width: 100%;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 5px;
+            }
+
+            /* Language toggle adjustment */
+            .language-toggle {
+                position: fixed;
+                top: 10px;
+                right: 10px;
+                z-index: 1000;
+                padding: 5px 10px;
+                font-size: 0.9em;
+            }
+
+            body[dir="rtl"] .language-toggle {
+                right: auto;
+                left: 10px;
+            }
+
+            /* Chip count inputs */
+            #chipCountInputs .input-group > div {
+                flex-direction: column;
+                align-items: flex-start !important;
+            }
+
+            #chipCountInputs input[type="number"] {
+                width: 100% !important;
+            }
+
+            /* Settlement summary adjustments */
+            #settlementSummary > div {
+                grid-template-columns: 1fr !important;
+            }
+
+            /* Button groups */
+            div[style*="display: flex; gap: 10px;"] {
+                flex-wrap: wrap;
+            }
+
+            /* Game stats display */
+            div[style*="display: grid; grid-template-columns: 1fr 1fr;"] {
+                grid-template-columns: 1fr !important;
+            }
+
+            /* Sticky header for better navigation */
+            .tab-buttons {
+                position: sticky;
+                top: 0;
+                background: #f0f2f5;
+                z-index: 100;
+                padding: 10px 0;
+            }
+
+            /* Improved touch targets */
+            button, 
+            input[type="button"],
+            input[type="submit"],
+            input[type="reset"] {
+                min-height: 44px;
+                touch-action: manipulation;
+            }
+
+            /* Better spacing for touch inputs */
+            input[type="text"],
+            input[type="number"],
+            select {
+                min-height: 44px;
+                padding: 8px 12px;
+            }
+
+            /* Improved table display for mobile */
+            table {
+                display: block;
+                width: 100%;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            /* Modal adjustments for mobile */
+            .modal-content {
+                width: 95%;
+                margin: 20px auto;
+            }
+
+            /* Improved scrolling */
+            * {
+                -webkit-overflow-scrolling: touch;
+            }
+
+            /* Font size adjustments */
+            h1 { font-size: 1.5em; }
+            h2 { font-size: 1.3em; }
+            h3 { font-size: 1.2em; }
+
+            /* Add pull-to-refresh visual indicator */
+            @keyframes pull-indicator {
+                0% { transform: translateY(-100%); }
+                100% { transform: translateY(0); }
+            }
+
+            .pull-indicator {
+                display: none;
+                height: 50px;
+                text-align: center;
+                line-height: 50px;
+                background: #f0f2f5;
+            }
+
+            .pulling .pull-indicator {
+                display: block;
+                animation: pull-indicator 0.3s ease-out;
+            }
+        }
+
+        /* Additional improvements for very small screens */
+        @media screen and (max-width: 320px) {
+            body {
+                font-size: 13px;
+            }
+
+            .btn {
+                padding: 6px 12px;
+            }
+
+            .container {
+                padding: 5px;
+            }
+        }
+
+        /* Landscape orientation adjustments */
+        @media screen and (max-height: 500px) and (orientation: landscape) {
+            .container {
+                max-height: 85vh;
+                overflow-y: auto;
+            }
+
+            .tab-buttons {
+                position: sticky;
+                top: 0;
+                background: #f0f2f5;
+                z-index: 100;
+            }
+        }
+
+        h1, h2, h3 {
+            color: var(--heading-color);
+        }
+
+        /* Add new styles for app header and logo */
+        .app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        .app-logo-container {
+            width: 200px;
+            height: 100px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            border-radius: 8px;
+        }
+        
+        #appLogo {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        
+        .theme-buttons {
+            position: absolute;
+            right: 0;
+            top: 0;
+            display: flex;
+            gap: 10px;
+        }
+
+        /* Update text color for all text elements */
+        body, 
+        input, 
+        select, 
+        button,
+        label,
+        .player-item,
+        .settlement-item,
+        .game-history-item,
+        #gameNameDisplay,
+        #settlementSummary,
+        .input-group input::placeholder {
+            color: var(--text-color);
+        }
+
+        /* Update specific element styles */
+        .container {
+            background-color: var(--background-color);
+            color: var(--text-color);
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            background-color: var(--background-color);
+            color: var(--input-text-color);
+            border: 1px solid var(--text-color);
+        }
+
+        select option {
+            background-color: var(--background-color);
+            color: var(--select-text-color);
+        }
+
+        .section {
+            background-color: var(--background-color);
+            border-color: var(--text-color);
+        }
+
+        .player-item,
+        .game-history-item {
+            background-color: var(--background-color);
+            border-color: var(--text-color);
+        }
+
+        .settlement-item {
+            background-color: var(--background-color);
+        }
+
+        #settlementSummary {
+            background-color: var(--background-color);
+        }
     </style>
 </head>
 <body>
     <div class="container">
+        <img id="backgroundImage" src="" alt="Background" style="display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0; object-fit: cover; z-index: -1;">
         <button class="btn language-toggle" onclick="toggleLanguage()" id="languageToggle">עברית</button>
+        <button class="btn" id="themeToggle">Toggle Theme</button>
+        
+        <!-- Add the app logo/image container -->
+        <div class="app-header">
+            <div class="app-logo-container">
+                <img id="appLogo" src="" alt="App Logo" style="display: none;">
+            </div>
+            <div class="theme-buttons">
+                <button class="btn" id="uploadThemeButton">Upload Theme Image</button>
+                <button class="btn" id="removeThemeButton" style="display: none;">Remove Theme Image</button>
+                <input type="file" id="themeImageInput" accept="image/*" style="display: none;">
+            </div>
+        </div>
+        
         <h1>Poker Game Calc2</h1>
         
         <div class="tab-buttons">
@@ -190,6 +559,9 @@
                 <div id="gameHistoryList"></div>
             </div>
         </div>
+
+        <label for="textColorPicker">Select Text Color:</label>
+        <input type="color" id="textColorPicker" value="#333333" />
     </div>
 
     <script src="app.js"></script>
@@ -213,6 +585,69 @@
                     });
             });
         }
+
+        function setBackgroundImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.getElementById('appLogo');
+                    img.src = e.target.result;
+                    img.style.display = 'block';
+                    document.getElementById('removeThemeButton').style.display = 'inline-block';
+                    
+                    // Save the image to localStorage
+                    localStorage.setItem('appLogo', e.target.result);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        function removeThemeImage() {
+            const img = document.getElementById('appLogo');
+            img.src = '';
+            img.style.display = 'none';
+            document.getElementById('removeThemeButton').style.display = 'none';
+            localStorage.removeItem('appLogo');
+        }
+        
+        // Add event listeners
+        document.getElementById('uploadThemeButton').onclick = () => document.getElementById('themeImageInput').click();
+        document.getElementById('removeThemeButton').onclick = removeThemeImage;
+        document.getElementById('themeImageInput').onchange = setBackgroundImage;
+        
+        // Load saved image on page load
+        window.addEventListener('load', function() {
+            const savedLogo = localStorage.getItem('appLogo');
+            if (savedLogo) {
+                const img = document.getElementById('appLogo');
+                img.src = savedLogo;
+                img.style.display = 'block';
+                document.getElementById('removeThemeButton').style.display = 'inline-block';
+            }
+        });
+
+        // Add color picker functionality
+        document.getElementById('textColorPicker').addEventListener('change', function(e) {
+            const color = e.target.value;
+            document.documentElement.style.setProperty('--text-color', color);
+            document.documentElement.style.setProperty('--input-text-color', color);
+            document.documentElement.style.setProperty('--select-text-color', color);
+            
+            // Save the color preference
+            localStorage.setItem('textColor', color);
+        });
+
+        // Load saved color preference
+        window.addEventListener('load', function() {
+            const savedColor = localStorage.getItem('textColor');
+            if (savedColor) {
+                document.getElementById('textColorPicker').value = savedColor;
+                document.documentElement.style.setProperty('--text-color', savedColor);
+                document.documentElement.style.setProperty('--input-text-color', savedColor);
+                document.documentElement.style.setProperty('--select-text-color', savedColor);
+            }
+        });
     </script>
 </body>
 </html> 
